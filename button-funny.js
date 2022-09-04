@@ -2,61 +2,72 @@
 window.onload = () => {
 	let button = document.getElementById("funny-button-lol-lmao");
 
+	let bp = getButtonPosition(button);
+	button.style.position = "absolute";
+
 	document.addEventListener("mousemove", mouseAvoid(button));
 }
 
-/** @param {HTMLButtonElement} button */
+/**
+ * Return a function which will move the button based on the data from a MouseEvent
+ * @param {HTMLButtonElement} button
+ */
 function mouseAvoid(button) {
 
 	/** @param {MouseEvent} ev */
 	return (ev) => {
-		let mx = ev.clientX;
-		let my = ev.clientY;
+		let mx = ev.clientX + ev.movementX;
+		let my = ev.clientY + ev.movementY;
 		let bs = getButtonSize(button);
-		let bw = bs[0];
-		let bh = bs[1];
+		let bw = bs.x;
+		let bh = bs.y;
 		let bp = getButtonPosition(button);
-		let bx = bp[0];
-		let by = bp[1];
+		let bx = bp.x;
+		let by = bp.y;
 		
 		let delta = determineSide(mx, my, bx, by, bw, bh);
 
-		setButtonPosition(button, [delta.x+bx, delta.y+by]);
+		setButtonPosition(button, v(delta.x+bx, delta.y+by));
 	}
 }
 
 class Quad {
 	/**
-	 * Points must be given in counterclockwise order
+	 * Points must be given in clockwise order unless the positive Y direction points up
 	 * @param {Vec} p1 @param {Vec} p2 @param {Vec} p3 @param {Vec} p4
 	 */
 	constructor(p1, p2, p3, p4) {
+		/** @type {[Vec, Vec, Vec, Vec]} */
 		this.points = [p1, p2, p3, p4]
 	}
 
 	/** @param {Vec} p */
 	contains(p) {
+		// if every edge going counterclockwise finds `p` to the left of itself, `p` is inside
 		return this.points.every((v1, i) => {
 			let v2 = this.points[(i+1) % 4];
 
-			let edge = v1.to(v2);
-			let vp = v1.to(p);
+			let edge = v1.to(v2);	// v1 -> v2
+			let vp = v1.to(p);		// v1 -> p
 
-			let cross = edge.cross(vp);
+			let cross = edge.cross(vp);	// if positive, then p is to the left of edge
 			return cross >= 0;
 		});
 	}
 }
 
 class Vec {
+	/** @param {Number} x @param {Number} y */
 	constructor(x, y) {
+		/** @type {Number} */
 		this.x = x;
+		/** @type {Number} */
 		this.y = y;
 	}
 
 	/** @param {Vec} other */
 	cross(other) {
-		return this.x * other.y - this.y * other.x;
+		return this.x * other.y - this.y * other.x; // not really cross more like ||cross||
 	}
 
 	/** @param {Vec} other */
@@ -80,7 +91,7 @@ function v(x, y) {
 	return new Vec(x, y);
 }
 
-/** @return {Number} */
+/** @return {Vec} */
 function determineSide(mx, my, bx, by, bw, bh) {
 	let bh2 = bh/2
 	let v1 = v(bx, by);
@@ -125,29 +136,29 @@ function determineSide(mx, my, bx, by, bw, bh) {
 
 /**
  * @param {HTMLButtonElement} button
- * @return {[Number, Number]}
+ * @return {Vec}
  */
 function getButtonPosition(button) {
 	let style = window.getComputedStyle(button);
-	return [Number(style.left.replace("px", "")),
-		    Number(style.top.replace("px", ""))];
+	return v(Number(style.left.replace("px", "")),
+		     Number(style.top.replace("px", "")));
 }
 
 /**
  * @param {HTMLButtonElement} button
- * @return {[Number, Number]}
+ * @return {Vec}
  */
  function getButtonSize(button) {
 	let style = window.getComputedStyle(button);
-	return [Number(style.width.replace("px", "")),
-		    Number(style.height.replace("px", ""))];
+	return v(Number(style.width.replace("px", "")),
+		     Number(style.height.replace("px", "")));
 }
 
 /**
  * @param {HTMLButtonElement} button
- * @param {[Number, Number]} pos
+ * @param {Vec} pos
  */
 function setButtonPosition(button, pos) {
-	button.style.left = pos[0].toString() + "px";
-	button.style.top = pos[1].toString() + "px";
+	button.style.left = pos.x.toString() + "px";
+	button.style.top = pos.y.toString() + "px";
 }
