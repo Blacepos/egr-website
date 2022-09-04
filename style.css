@@ -1,0 +1,14 @@
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	width: 50px;
+	height: 20px;
+	left: 1242px;
+	top: 126px;
+}
